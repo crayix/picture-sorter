@@ -321,6 +321,7 @@ namespace Picture_Sorter
 
         private void H_FILE_LIST_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (H_CAT_COMBO.SelectedIndex == -1) { return; }
             LoadImageWithoutLock((string)H_FILE_LIST.Items[H_FILE_LIST.SelectedIndex]);
             H_FILE_NAME_LABEL.Text = (string)H_FILE_LIST.Items[H_FILE_LIST.SelectedIndex];
             CurrentIndex = H_FILE_LIST.SelectedIndex;
@@ -357,7 +358,10 @@ namespace Picture_Sorter
 
         private void ToolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            MoveFile((string)H_FILE_LIST.Items[H_FILE_LIST.SelectedIndex], GetCategorieFullpath(e.ClickedItem.Text.Substring(3)));
+            if (H_FILE_LIST.SelectedIndex != -1)
+                MoveFile((string)H_FILE_LIST.Items[H_FILE_LIST.SelectedIndex], GetCategorieFullpath(e.ClickedItem.Text.Substring(3)));
+            else
+                MessageBox.Show("No files selected");
         }
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -462,7 +466,7 @@ namespace Picture_Sorter
         }
         private void button15_Click(object sender, EventArgs e)
         {
-            ColorSorter i = new ColorSorter();
+            ColorSorter i = new ColorSorter(TextBox1.Text);
             i.Show();
         }
 

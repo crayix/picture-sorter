@@ -13,9 +13,11 @@ namespace Picture_Sorter
 {
     public partial class ColorSorter : Form
     {
-        public ColorSorter()
+        public ColorSorter(String s)
         {
             InitializeComponent();
+            //set working dir
+            textBox1.Text = s;
         }
 
         private bool stop = true;
@@ -88,6 +90,8 @@ namespace Picture_Sorter
             DateTime be;
             DateTime af;
 
+            int skippedFiles = 0;
+
             for (int i = 0; i < q.Count; i++)
             {
                 if (stop) { break; }
@@ -125,7 +129,25 @@ namespace Picture_Sorter
                     pictureBox1.Image = null;
                 }
 
-                FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), x.Name));
+                if (File.Exists(Path.Combine(Path.Combine(textBox1.Text, s), x.Name)))
+                {
+                    if (checkBox2.Checked)
+                    {
+                        String fileType = x.Name.Substring(x.Name.IndexOf("."), x.Name.Length - (x.Name.IndexOf(".")));
+                        String fileName = x.Name.Substring(0, x.Name.IndexOf("."));
+                        FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), fileName + " - 1" + fileType));
+                    }
+                    else
+                    {
+                        //skip file
+                        skippedFiles++;
+                    }
+                }
+                else
+                {
+                    FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), x.Name));
+                }
+
                 af = DateTime.Now;
 
                 TimeSpan ss = (af - be);
@@ -136,7 +158,12 @@ namespace Picture_Sorter
                 Application.DoEvents();
 
             }
-            label1.Text = "Finished";
+
+            if (skippedFiles != 0)
+                label1.Text = "Finished - " + skippedFiles + " files skipped";
+            else
+                label1.Text = "Finished";
+
             stop = true;
             button2.Text = "Sort";
         }
