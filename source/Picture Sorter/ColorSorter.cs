@@ -91,6 +91,7 @@ namespace Picture_Sorter
             DateTime af;
 
             int skippedFiles = 0;
+            int erroredFiles = 0;
 
             for (int i = 0; i < q.Count; i++)
             {
@@ -100,69 +101,77 @@ namespace Picture_Sorter
 
                 FileInfo x = q[i];
 
-                Image w = Image.FromFile(x.FullName);
+                Image w = null;
 
-
-                if (checkBox1.Checked)
+                try
                 {
-                    pictureBox1.Image = w.GetThumbnailImage(250, 250, null, IntPtr.Zero);
-                    Application.DoEvents();
-                }
+                    w = Image.FromFile(x.FullName);
 
-
-                FastBitmap g = new FastBitmap((Bitmap)w);
-
-                g.LockImage();
-
-
-                Color a = getDominantColor(g, w.Size);
-
-                string s = ColorManagement.GetNearestWebColor(a).ToString();
-
-                g.UnlockImage();
-
-                w.Dispose();
-
-                if (pictureBox1.Image != null)
-                {
-                    pictureBox1.Image.Dispose();
-                    pictureBox1.Image = null;
-                }
-
-                if (File.Exists(Path.Combine(Path.Combine(textBox1.Text, s), x.Name)))
-                {
-                    if (checkBox2.Checked)
+                    if (checkBox1.Checked)
                     {
-                        String fileType = x.Name.Substring(x.Name.IndexOf("."), x.Name.Length - (x.Name.IndexOf(".")));
-                        String fileName = x.Name.Substring(0, x.Name.IndexOf("."));
-                        FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), fileName + " - 1" + fileType));
+                        pictureBox1.Image = w.GetThumbnailImage(250, 250, null, IntPtr.Zero);
+                        Application.DoEvents();
+                    }
+
+
+                    FastBitmap g = new FastBitmap((Bitmap)w);
+
+                    g.LockImage();
+
+
+                    Color a = getDominantColor(g, w.Size);
+
+                    string s = ColorManagement.GetNearestWebColor(a).ToString();
+
+                    g.UnlockImage();
+
+                    w.Dispose();
+
+                    if (pictureBox1.Image != null)
+                    {
+                        pictureBox1.Image.Dispose();
+                        pictureBox1.Image = null;
+                    }
+
+                    if (File.Exists(Path.Combine(Path.Combine(textBox1.Text, s), x.Name)))
+                    {
+                        if (checkBox2.Checked)
+                        {
+                            String fileType = x.Name.Substring(x.Name.IndexOf("."), x.Name.Length - (x.Name.IndexOf(".")));
+                            String fileName = x.Name.Substring(0, x.Name.IndexOf("."));
+                            FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), fileName + " - 1" + fileType));
+                        }
+                        else
+                        {
+                            //skip file
+                            skippedFiles++;
+                        }
                     }
                     else
                     {
-                        //skip file
-                        skippedFiles++;
+                        FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), x.Name));
                     }
+
+                    af = DateTime.Now;
+
+                    TimeSpan ss = (af - be);
+
+                    label1.Text = (i + 1).ToString() + "/" + q.Count.ToString() + " , " + ((int)(1 / ss.TotalSeconds)).ToString() + " file/sec.";
+
+                    progressBar1.Value = (i + 1);
+                    Application.DoEvents();
+
                 }
-                else
+                catch (OutOfMemoryException ome)
                 {
-                    FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), x.Name));
+
+                    Console.WriteLine(ome);
+                    Console.WriteLine(x.Name + "may be corrupted");
+                    erroredFiles++;
                 }
-
-                af = DateTime.Now;
-
-                TimeSpan ss = (af - be);
-
-                label1.Text = (i + 1).ToString() + "/" + q.Count.ToString() + " , " + ((int)(1 / ss.TotalSeconds)).ToString() + " file/sec.";
-
-                progressBar1.Value = (i + 1);
-                Application.DoEvents();
-
             }
-
-            if (skippedFiles != 0)
-                label1.Text = "Finished - " + skippedFiles + " files skipped";
-            else
-                label1.Text = "Finished";
+            
+            label1.Text = "Finished"+((erroredFiles>0)?" - "+erroredFiles+" failed":"")+ ((skippedFiles > 0) ? " - " + skippedFiles + " skipped" : "");
 
             stop = true;
             button2.Text = "Sort";
