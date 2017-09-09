@@ -133,12 +133,19 @@ namespace Picture_Sorter
                         pictureBox1.Image = null;
                     }
 
+                    String fileName = x.Name.Substring(0, x.Name.LastIndexOf("."));
+                    String fileType = x.Name.Substring(x.Name.LastIndexOf("."), x.Name.Length - x.Name.LastIndexOf("."));
+                    if (fileName.Length > 128)
+                    {
+                        fileName = fileName.Substring(0, 128);
+                    }
+                    Console.WriteLine(fileName.Length + " " + fileName);
+
                     if (File.Exists(Path.Combine(Path.Combine(textBox1.Text, s), x.Name)))
                     {
                         if (checkBox2.Checked)
                         {
-                            String fileType = x.Name.Substring(x.Name.IndexOf("."), x.Name.Length - (x.Name.IndexOf(".")));
-                            String fileName = x.Name.Substring(0, x.Name.IndexOf("."));
+                                                  
                             FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), fileName + " - 1" + fileType));
                         }
                         else
@@ -149,7 +156,7 @@ namespace Picture_Sorter
                     }
                     else
                     {
-                        FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), x.Name));
+                        FileSystem.MoveFile(x.FullName, Path.Combine(Path.Combine(textBox1.Text, s), fileName + "" + fileType));
                     }
 
                     af = DateTime.Now;
